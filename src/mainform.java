@@ -1,3 +1,4 @@
+import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -12,6 +13,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -53,6 +55,8 @@ public class mainform extends Container {
                             throw new RuntimeException(ex);
                         } catch (InterruptedException ex) {
                             throw new RuntimeException(ex);
+                        } catch (URISyntaxException ex) {
+                            throw new RuntimeException(ex);
                         }
                     }
 
@@ -92,8 +96,8 @@ public class mainform extends Container {
     }
 
     int index = 0;
-    void getTaskDone(String _videoID) throws IOException, InterruptedException {
-        HttpRequest request = HttpRequest.newBuilder()
+    void getTaskDone(String _videoID) throws IOException, InterruptedException, URISyntaxException {
+        /*HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create("https://api.vevioz.com/api/button/mp3/" + _videoID))
                 .method("GET", HttpRequest.BodyPublishers.noBody())
                 .build();
@@ -103,12 +107,25 @@ public class mainform extends Container {
         Document doc = Jsoup.parse(response.body(), "http://cdn-30.vevioz.com/");
 
 
-        System.out.println(doc.select("a[href]").attr("abs:href"));
+        System.out.println(doc.select("a[href]").attr("abs:href"));*/
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("https://youtube-mp3-download1.p.rapidapi.com/dl?id=" + _videoID))
+                .header("X-RapidAPI-Key", "c0fd7e398cmshc87145cf2049247p141290jsn61a43e9f92df")
+                .header("X-RapidAPI-Host", "youtube-mp3-download1.p.rapidapi.com")
+                .method("GET", HttpRequest.BodyPublishers.noBody())
+                .build();
+        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+        System.out.println(response.body());
+
+        JSONObject  jsonObject = new JSONObject(response.body().toString());
+        System.out.println(jsonObject.getString("link"));
+        System.out.println(jsonObject.getString("title"));
 
 
-
-        try (BufferedInputStream in = new BufferedInputStream(new URL(doc.select("a[href]").attr("abs:href")).openStream());
-             FileOutputStream fileOutputStream = new FileOutputStream("D:\\Musikebi\\" + names.get(index) + ".mp3")) {
+        Desktop.getDesktop().browse(new URL(jsonObject.getString("link")).toURI());
+        /*try (BufferedInputStream in = new BufferedInputStream(new URL(jsonObject.getString("link")).openStream());
+            FileOutputStream fileOutputStream = new FileOutputStream("D:\\Musikebi\\" + jsonObject.getString("title") + ".mp3")) {
             index++;
             byte dataBuffer[] = new byte[1024];
             int bytesRead;
@@ -118,7 +135,7 @@ public class mainform extends Container {
             }progressBar1.setValue(100);
         } catch (IOException e) {
             // handle exception
-        }
+        }*/
     }
 
     List<String> newList;
